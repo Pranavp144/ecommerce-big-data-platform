@@ -1,0 +1,18 @@
+flowchart TD
+    A[orders_dirty.csv] --> B[HDFS]
+    B --> C[PySpark]
+    C --> D{Data Quality}
+    D --> E[Remove NULL customer IDs]
+    D --> F[Remove Invalid Quantity]
+    D --> G[Remove Invalid Price]
+    D --> H[Remove Duplicate Orders]
+    E --> I[Clean Dataset]
+    F --> I
+    G --> I
+    H --> I
+    I --> J[Calculate total_amount]
+    J --> K[Parquet]
+    K --> L[Spark SQL]
+    L --> M[Customer Analytics]
+    L --> N[Product Analytics]
+    L --> O[Business KPIs]

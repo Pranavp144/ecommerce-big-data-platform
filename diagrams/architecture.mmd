@@ -1,0 +1,10 @@
+flowchart LR
+    A[Raw E-Commerce Data] --> B[HDFS]
+    B --> C[PySpark ETL]
+    C --> D[Data Validation]
+    D --> E[Transformation]
+    E --> F[Parquet]
+    F --> G[Spark SQL]
+    G --> H[Customer Analytics]
+    G --> I[Product Analytics]
+    G --> J[Business KPIs]
