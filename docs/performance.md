@@ -1,42 +1,74 @@
 # Performance Analysis
 
-Performance benchmarking will be added as the project develops.
+## Overview
 
-## Planned Experiments
+The Olist ETL pipeline was executed using Apache Spark in local mode with
+`local[*]`.
 
-### 1. CSV vs Parquet
+The Spark UI was used to inspect jobs, stages, SQL/DataFrame executions,
+join strategies, and shuffle activity.
 
-Compare the performance of reading equivalent datasets from CSV and Parquet.
+The purpose of this analysis is to understand how Spark executes the
+pipeline rather than to perform extensive optimization on the current
+local dataset.
 
-### 2. Partitioning
+---
 
-Measure how different partition counts affect processing time.
+## Dataset Size
 
-### 3. Shuffle
+The pipeline processes the following core datasets:
 
-Analyze operations such as:
+| Dataset | Rows |
+|---|---:|
+| Orders | 99,441 |
+| Customers | 99,441 |
+| Order Items | 112,650 |
+| Products | 32,951 |
+| Delivered Orders | 96,478 |
+| Enriched Order Items | 110,197 |
 
-- `groupBy`
-- `join`
-- `distinct`
-- `orderBy`
+---
 
-and observe their effect on Spark stages.
+## Execution Overview
 
-### 4. Caching
+The Spark UI showed the following execution characteristics:
 
-Compare workloads with and without caching.
+- 65 completed Spark jobs/stages were observed during the pipeline run.
+- 24 SQL/DataFrame executions were recorded.
+- The Parquet write execution involved 5 associated Spark jobs.
+- Multiple Spark actions such as `count()`, `show()`, and `write()` triggered
+  separate executions.
 
-### 5. Broadcast Joins
+The relatively high number of executions is partly caused by the data-quality
+validation layer, where individual validation checks use Spark actions such
+as `count()`.
 
-Compare a normal join with a broadcast join when the smaller dataset is suitable for broadcasting.
+---
 
-### 6. Execution Plans
+## Join Strategies
 
-Use Spark's execution-plan tools to understand how Spark optimizes queries.
+Spark selected different physical join strategies for the pipeline.
 
-## Evidence
+### Orders and Order Items
 
-Performance results will be measured experimentally and documented here.
+The join between delivered orders and order items was executed using a
+`SortMergeJoin`.
 
-No benchmark values are included until they have been measured on the project environment.
+The execution plan showed:
+
+```text
+Orders
+   ↓
+Filter
+   ↓
+Exchange
+   ↓
+Sort
+   \
+    SortMergeJoin
+   /
+Sort
+   ↑
+Exchange
+   ↑
+Order Items

@@ -15,8 +15,11 @@ from validation.olist_validation import (
 
 
 
-HDFS_BASE_PATH = "hdfs://localhost:9000/ecommerce/raw/olist"
-PROCESSED_PATH = "hdfs://localhost:9000/ecommerce/processed/olist"
+# HDFS_BASE_PATH = "hdfs://localhost:9000/ecommerce/raw/olist"
+S3_BASE_PATH = "s3a://olist-bigdata-project-2026-8472/raw/olist"
+
+# PROCESSED_PATH = "hdfs://localhost:9000/ecommerce/processed/olist"
+PROCESSED_PATH = "s3a://olist-bigdata-project-2026-8472/processed/olist"
 
 
 def main():
@@ -29,7 +32,7 @@ def main():
     # 2. Read source datasets
     orders, customers, order_items, products = read_olist_data(
         spark,
-        HDFS_BASE_PATH
+        S3_BASE_PATH
     )
 
     print("Source datasets loaded.")
@@ -150,7 +153,8 @@ def main():
     
     
 
-    # 9. Stop Spark
+    # 9.Keep Spark running for inspection
+    input("Press Enter to stop Spark...")
     spark.stop()
 
     print("Spark application stopped.")

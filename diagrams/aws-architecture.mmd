@@ -1,0 +1,14 @@
+flowchart TD
+    A[Olist CSV Data] --> B[Amazon S3<br/>Raw Data Layer]
+
+    B --> C[AWS Spark Processing]
+
+    C --> D[Data Quality Validation]
+
+    D --> E[Amazon S3<br/>Processed Parquet Layer]
+
+    E --> F[Customer Analytics]
+    E --> G[Product Analytics]
+    E --> H[Business Metrics]
+
+    I[Databricks<br/>Future Extension] -.-> E
