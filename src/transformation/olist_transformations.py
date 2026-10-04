@@ -43,7 +43,7 @@ def create_enriched_orders(
     # 5. Calculate total item cost
     enriched_orders = enriched_orders.withColumn(
         "total_item_cost",
-        col("price") * col("freight_value")
+        col("price") + col("freight_value")
     )
 
     return enriched_orders

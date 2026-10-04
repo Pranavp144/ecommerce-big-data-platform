@@ -6,6 +6,13 @@ from analytics.olist_analysis import (
     calculate_product_revenue,
     calculate_business_metrics
 )
+from validation.olist_validation import (
+    validate_required_columns,
+    validate_no_nulls,
+    validate_positive_values,
+    validate_minimum_rows
+)
+
 
 
 HDFS_BASE_PATH = "hdfs://localhost:9000/ecommerce/raw/olist"
@@ -39,10 +46,64 @@ def main():
         order_items,
         products
     )
+    print("Running data quality checks...")
+
+    validate_required_columns(
+        enriched_orders,
+        [
+            "order_id",
+            "customer_id",
+            "product_id",
+            "price",
+            "freight_value",
+            "total_item_cost"
+        ]
+    )
+
+    validate_no_nulls(
+        enriched_orders,
+        [
+            "order_id",
+            "customer_id",
+            "product_id"
+        ]
+)
+
+    validate_positive_values(
+        enriched_orders,
+        [
+            "price",
+            "freight_value",
+            "total_item_cost"
+        ]
+)
+
+    validate_minimum_rows(
+        enriched_orders,
+        100000
+)
+
+    print("All data quality checks passed.")
 
     print("Enriched dataset created.")
     print("Enriched rows:", enriched_orders.count())
 
+    # from pyspark.sql.functions import col
+    
+    # invalid_freight = enriched_orders.filter(
+    # col("freight_value") <= 0
+    # )
+
+    # print("Invalid freight rows:", invalid_freight.count())
+    
+    # invalid_freight.select(
+    #     "order_id",
+    #     "product_id",
+    #     "price",
+    #     "freight_value",
+    #     "total_item_cost"
+    #     ).show(20)
+    
     # 4. Write processed data to Parquet
     enriched_orders.write \
         .mode("overwrite") \
@@ -86,6 +147,8 @@ def main():
 
     print("Business metrics:")
     business_metrics.show()
+    
+    
 
     # 9. Stop Spark
     spark.stop()
