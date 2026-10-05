@@ -13,19 +13,20 @@ has not yet been deployed.
 
 ---
 
-## Current Local Architecture
-
-```text
-Olist CSV Data
-      ↓
-HDFS Raw Layer
-      ↓
-PySpark
-      ↓
-Transformations & Joins
-      ↓
-Data Quality Validation
-      ↓
-Parquet
-      ↓
-Analytics
+                AWS S3
+                  │
+          ┌───────┴───────┐
+          │               │
+       raw/olist/     processed/olist/
+          │               ▲
+          │               │
+          ▼               │
+      Olist CSV       Parquet files
+          │               ▲
+          └──────► PySpark ─┘
+                    │
+             Data Validation
+                    │
+              Transformations
+                    │
+                 Analytics
