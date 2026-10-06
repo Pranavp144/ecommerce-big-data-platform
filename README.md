@@ -24,32 +24,29 @@ ingestion through transformation and analytical processing.
 
 ### Current Pipeline
 
-``` text
-                    RAW DATA
-                       │
-                       ▼
-                 Hadoop HDFS
-                       │
-                       ▼
-                PySpark ETL
-                       │
-              ┌────────┴────────┐
-              │                 │
-              ▼                 ▼
-        Data Cleaning      Data Enrichment
-              │                 │
-              └────────┬────────┘
-                       ▼
-                  Parquet
-                       │
-                       ▼
-                  Spark SQL
-                       │
-          ┌────────────┼────────────┐
-          ▼            ▼            ▼
-      Customer      Product      Business
-      Analytics     Analytics       KPIs
-
+```text
+           RAW DATA
+              │
+         Hadoop HDFS
+              │
+         PySpark ETL
+              │
+      ┌───────┴───────┐
+      ▼               ▼
+Data Cleaning   Data Enrichment
+      │               │
+      └───────┬───────┘
+              ▼
+           Parquet
+              │
+              ▼
+          Spark SQL
+              │
+    ┌─────────┼─────────┐
+    ▼         ▼         ▼
+ Customer  Product  Business
+Analytics Analytics   KPIs
+```
 ## Architecture
 
 ### Current Implementation
