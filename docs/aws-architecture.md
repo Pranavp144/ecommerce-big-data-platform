@@ -2,31 +2,39 @@
 
 ## Overview
 
-The current Olist e-commerce pipeline runs locally using Hadoop HDFS and
-Apache Spark.
+The current version of the E-Commerce Big Data Analytics Platform uses
+Amazon S3 as the cloud storage layer and Apache Spark/PySpark as the
+distributed data processing engine.
 
-The planned AWS architecture moves the storage and Spark processing layer
-to AWS while keeping the core PySpark ETL logic largely unchanged.
+The pipeline separates raw source data from processed analytical data
+using two S3 layers:
 
-The AWS architecture is currently a planned extension of the project and
-has not yet been deployed.
+- Raw layer — original Olist CSV datasets
+- Processed layer — enriched Parquet datasets
 
 ---
 
-                AWS S3
-                  │
-          ┌───────┴───────┐
-          │               │
-       raw/olist/     processed/olist/
-          │               ▲
-          │               │
-          ▼               │
-      Olist CSV       Parquet files
-          │               ▲
-          └──────► PySpark ─┘
-                    │
-             Data Validation
-                    │
-              Transformations
-                    │
+## Architecture
+
+```text
+                Olist Dataset
+                     │
+                     ▼
+             Amazon S3 - Raw
+                     │
+                     ▼
+                PySpark
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+   Data Validation        Data Enrichment
+          │                     │
+          └──────────┬──────────┘
+                     ▼
+             Processed Parquet
+                     │
+                     ▼
+          Amazon S3 - Processed
+                     │
+                     ▼
                  Analytics

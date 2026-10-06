@@ -5,14 +5,13 @@
 Spark](https://img.shields.io/badge/Apache%20Spark-4.2.0-orange?logo=apachespark)](https://spark.apache.org/)
 [![PySpark](https://img.shields.io/badge/PySpark-4.2.0-red?logo=apachespark)](https://spark.apache.org/)
 [![Hadoop](https://img.shields.io/badge/Hadoop-HDFS-yellow?logo=apachehadoop)](https://hadoop.apache.org/)
-[![SQL](https://img.shields.io/badge/Spark%20SQL-Enabled-lightgrey)](https://spark.apache.org/sql/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/)
+[![AWS S3](https://img.shields.io/badge/AWS-S3-orange?logo=amazonaws)](https://aws.amazon.com/s3/)[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?logo=github)](https://github.com/)
 
-> An end-to-end Big Data engineering platform for ingesting, cleaning,
-> transforming and analyzing e-commerce data using Hadoop HDFS, Apache
-> Spark, PySpark, Spark SQL and Parquet.
+> An end-to-end Big Data engineering platform for ingesting, validating,
+> transforming and analyzing e-commerce data using Apache Spark, PySpark,
+> Amazon S3 and Parquet.
 
-## The project is being developed incrementally: starting with a local Hadoop/Spark environment to understand distributed data processing fundamentals, then extending the pipeline to AWS S3 and later to Databricks.
+## The project was developed incrementally, starting with a local Hadoop/Spark environment to understand distributed data processing fundamentals, then extending the pipeline to Amazon S3. Databricks and lakehouse analytics are planned as the next stage.
 
 ## Project Overview
 
@@ -25,79 +24,108 @@ ingestion through transformation and analytical processing.
 ### Current Pipeline
 
 ```text
-           RAW DATA
-              │
-         Hadoop HDFS
-              │
-         PySpark ETL
-              │
-      ┌───────┴───────┐
-      ▼               ▼
-Data Cleaning   Data Enrichment
-      │               │
-      └───────┬───────┘
-              ▼
-           Parquet
-              │
-              ▼
-          Spark SQL
-              │
-    ┌─────────┼─────────┐
-    ▼         ▼         ▼
- Customer  Product  Business
-Analytics Analytics   KPIs
+                 OLIST DATASET
+                      │
+                      ▼
+              Amazon S3 - Raw
+                      │
+                      ▼
+                  PySpark
+                      │
+              ┌───────┴───────┐
+              ▼               ▼
+        Data Validation   Data Enrichment
+              │               │
+              └───────┬───────┘
+                      ▼
+              Processed Parquet
+                      │
+                      ▼
+            Amazon S3 - Processed
+                      │
+                      ▼
+                  Analytics
+              ┌───────┼───────┐
+              ▼       ▼       ▼
+          Customer  Product  Business
+          Analytics Analytics   KPIs
 ```
 ## Architecture
 
 ### Current Implementation
 
-The current pipeline runs locally using Hadoop HDFS and Apache Spark.
+The current Olist pipeline uses Amazon S3 as the cloud storage layer and
+Apache Spark for distributed data processing.
 
 ```mermaid
 flowchart LR
-    A[Raw E-Commerce Data] --> B[Hadoop HDFS]
+
+    A[Olist CSV Data] --> B[Amazon S3 - Raw]
+
     B --> C[PySpark ETL]
+
     C --> D[Data Validation]
+
     D --> E[Data Enrichment]
-    E --> F[Parquet]
-    F --> G[Spark SQL]
+
+    E --> F[Processed Parquet]
+
+    F --> G[Amazon S3 - Processed]
 
     G --> H[Customer Analytics]
+
     G --> I[Product Analytics]
-    G --> J[Business KPIs]
+
+    G --> J[Category Analytics]
+
+    G --> K[State Analytics]
+
+    G --> L[Business KPIs]
 ```
 
 ### Data Processing Flow
 
-``` text
-Raw Data
-   │
-   ▼
-HDFS
-   │
-   ▼
+```text
+Olist CSV Data
+      │
+      ▼
+Amazon S3 - Raw
+      │
+      ▼
 PySpark
-   │
-   ├── Data Cleaning
-   │
-   ├── Data Validation
-   │
-   └── Data Enrichment
-   │
-   ▼
-Parquet
-   │
-   ▼
-Spark SQL
-   │
-   ├── Customer Analytics
-   ├── Product Analytics
-   └── Business KPIs
+      │
+      ├── Filter Delivered Orders
+      │
+      ├── Data Validation
+      │
+      ├── Join Orders
+      │      ├── Customers
+      │      ├── Order Items
+      │      └── Products
+      │
+      └── Data Enrichment
+             │
+             ▼
+      Processed Parquet
+             │
+             ▼
+      Amazon S3 - Processed
+             │
+             ▼
+         Analytics
+             │
+      ┌──────┼───────┬────────┐
+      ▼      ▼       ▼        ▼
+   Customer Product Category State
+   Revenue  Revenue Revenue  Revenue
+             │
+             ▼
+       Business KPIs
 ```
 
 ### AWS S3 Integration
 
-The current pipeline has been extended to use Amazon S3 as the cloud
+The current pipeline uses Amazon S3 as the primary cloud
 storage layer. Raw Olist CSV datasets are stored in S3, loaded by
 PySpark using the S3A filesystem, validated and enriched, and then
 written back to S3 as Parquet.
@@ -113,25 +141,24 @@ flowchart LR
     G --> H[Analytics]
 ```
 
-### Planned Cloud Architecture
+### Databricks
 
-The next cloud extension is Databricks and lakehouse-based analytics.
+The project was also executed and validated using Databricks Serverless
+Spark. The Olist datasets were uploaded to a Unity Catalog Volume and
+the PySpark transformations and analytics were executed in a Databricks
+notebook.
 
-``` mermaid
-flowchart LR
-    A[Processed Parquet] --> B[Databricks]
-    B --> C[Delta Lake]
-    C --> D[Databricks SQL]
-    D --> E[Dashboard]
-```
+The Databricks execution reproduced the core pipeline results, including
+110,197 enriched rows and the business revenue metrics.
 
 ## Current Features
 
 ### Data Ingestion
 
--   Read raw e-commerce order data from Hadoop HDFS.
--   Support CSV input with schema inference.
--   Separate raw and processed data layers.
+- Read Olist datasets from Amazon S3 using the S3A filesystem.
+- Support CSV input with schema inference.
+- Maintain separate raw and processed data layers.
+- Process orders, customers, order items and products.
 
 ### Data Quality & Cleaning
 
@@ -143,32 +170,39 @@ flowchart LR
 
 ### Data Transformation
 
--   Calculate order-level `total_amount`.
--   Convert cleaned data into Parquet format.
--   Read processed Parquet data back from HDFS.
+- Filter orders to delivered transactions.
+- Join orders with order items.
+- Join product and customer information.
+- Calculate `total_item_cost` using product price and freight.
+- Write the enriched dataset as Parquet.
+- Read processed Parquet data back from Amazon S3.
 
 ### Analytics
 
--   Customer revenue analysis.
--   Customer order-count analysis.
--   Average order value calculation.
--   Product sales analysis.
--   Product revenue analysis.
--   Overall business KPIs.
+- Customer revenue analysis.
+- Customer order-count analysis.
+- Average order value calculation.
+- Product revenue analysis.
+- Product order analysis.
+- Category revenue analysis.
+- State-level revenue analysis.
+- Overall business KPIs.
 
-### Spark SQL
+### Spark SQL Exploration
 
--   Create temporary views from processed datasets.
+-   Create temporary views from Spark DataFrames.
 -   Execute SQL-based analytical queries.
--   Aggregate and sort datasets using Spark.
+-   Explore Aggregation and sorting datasets using Spark SQL.
 
 ### Big Data Concepts Demonstrated
 
--   Hadoop HDFS
 -   Apache Spark
 -   PySpark DataFrames
 -   Spark SQL
+-   Amazon S3
+-   S3A filesystem
 -   Parquet
+-   Hadoop HDFS
 -   Data partitioning
 -   Shuffle operations
 -   Distributed data processing
@@ -182,9 +216,11 @@ flowchart LR
   **Python**         Application and data-processing language
   **PySpark**        Distributed data processing and ETL
   **Apache Spark**   Processing engine for large-scale analytics
-  **Hadoop HDFS**    Distributed storage for raw and processed data
+  **Amazon S3**      Cloud object storage for raw and processed data
+  **Databricks**     Serverless Spark execution and analytics
   **Spark SQL**      SQL-based analytical processing
   **Parquet**        Columnar storage format for processed data
+  **Hadoop HDFS**    Local distributed storage used during the initial development phase
   **Git & GitHub**   Version control and project collaboration
   **VS Code**        Development environment
 
@@ -294,34 +330,24 @@ The current pipeline requires:
 -   Linux
 -   Python 3.x
 -   Java 17
--   Hadoop HDFS
 -   Apache Spark 4.2.0
 -   PySpark
+-   AWS CLI
+-   An AWS account with access to the project S3 bucket
 
-### 1. Start Hadoop
-
-Start the required Hadoop services and verify that HDFS is available.
-
-``` bash
-jps
-```
-
-The Hadoop services should be running before executing the Spark
-pipeline.
-
-### 2. Activate the PySpark Environment
+### 1. Activate the PySpark Environment
 
 ``` bash
 source /home/pranav/bigdata/venvs/pyspark-env/bin/activate
 ```
 
-### 3. Navigate to the Project
+### 2. Navigate to the Project
 
 ``` bash
 cd "/media/pranav/New Volume/TechStacks/VS code/Spark"
 ```
 
-### 4. Run the Spark Pipeline
+### 3. Run the Spark Pipeline
 
 ``` bash
 cd src
@@ -351,18 +377,18 @@ The New Pipeline will :
 
 
 
-### 5. Verify the HDFS Output
+### 4. Verify the S3 Output
 
-The processed dataset is stored at:
+The processed Parquet dataset is stored in Amazon S3 at:
 
-``` text
-/ecommerce/processed/orders
+```text
+s3://olist-bigdata-project-2026-8472/processed/olist/
 ```
 
 You can verify the output using:
 
 ``` bash
-hdfs dfs -ls /ecommerce/processed/orders
+aws s3 ls s3://olist-bigdata-project-2026-8472/processed/olist/
 ```
 
 ### Spark UI
@@ -387,40 +413,22 @@ The Spark UI can be used to inspect:
 > configuration. The project documentation focuses on the Spark pipeline
 > itself.
 
-## Data Quality & Validation
+### Olist Data Quality & Validation
 
-The pipeline processes an intentionally dirty dataset to demonstrate
-common data-quality problems encountered in data engineering workflows.
+The Olist pipeline includes reusable data-quality checks to validate the
+enriched transaction dataset before downstream analytics.
 
 ### Validation Rules
 
-  Rule                    Action
-  ----------------------- ------------------
-  `customer_id` is NULL   Remove record
-  `quantity <= 0`         Remove record
-  `price <= 0`            Remove record
-  Duplicate `order_id`    Remove duplicate
+- Required columns must be present.
+- Required identifiers must not contain NULL values.
+- Price and freight values must not be negative.
+- The processed dataset must contain a minimum expected number of rows.
 
-### Example
+### Validation Result
 
-The raw dataset contains **9 records**.
-
-After applying the validation and cleaning rules:
-
-``` text
-Raw Records       : 9
-Valid Records     : 5
-Invalid/Removed   : 4
-```
-
-The cleaned dataset is then enriched with:
-
-``` text
-total_amount = quantity × price
-```
-
-The resulting dataset is stored in HDFS as Parquet and used for
-downstream analytics.
+The Olist pipeline successfully validated the enriched dataset containing
+110,197 delivered order-item records.
 
 ### Validation Checks
 
@@ -442,7 +450,7 @@ data.
 -   [x] PySpark ingestion
 -   [x] Data cleaning and validation
 -   [x] Parquet processing layer
--   [x] Spark SQL analytics
+-   [x] Spark SQL exploration
 -   [x] AWS S3 raw data storage
 -   [x] AWS S3 processed Parquet storage
 -   [x] S3A integration with PySpark
