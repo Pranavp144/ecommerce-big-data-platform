@@ -35,6 +35,10 @@ def create_spark_session(app_name):
             "spark.hadoop.fs.s3a.aws.credentials.provider",
             "org.apache.hadoop.fs.s3a.auth.ProfileAWSCredentialsProvider"
         )
+        .config(
+            "spark.hadoop.fs.s3a.input.stream.type",
+            "classic"
+        )
         .getOrCreate()
     )
 

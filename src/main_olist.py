@@ -4,7 +4,9 @@ from transformation.olist_transformations import create_enriched_orders
 from analytics.olist_analysis import (
     calculate_customer_revenue,
     calculate_product_revenue,
-    calculate_business_metrics
+    calculate_business_metrics,
+    calculate_category_revenue,
+    calculate_state_revenue
 )
 from validation.olist_validation import (
     validate_required_columns,
@@ -14,6 +16,8 @@ from validation.olist_validation import (
 )
 
 
+SHOW_COUNTS = False  # Set to True to display row counts of source datasets
+RUN_VALIDATION = False  # Set to True to run data quality checks
 
 # HDFS_BASE_PATH = "hdfs://localhost:9000/ecommerce/raw/olist"
 S3_BASE_PATH = "s3a://olist-bigdata-project-2026-8472/raw/olist"
@@ -35,12 +39,13 @@ def main():
         S3_BASE_PATH
     )
 
-    print("Source datasets loaded.")
+    if SHOW_COUNTS:
+        print("Source datasets loaded.")
 
-    print("Orders:", orders.count())
-    print("Customers:", customers.count())
-    print("Order items:", order_items.count())
-    print("Products:", products.count())
+        print("Orders:", orders.count())
+        print("Customers:", customers.count())
+        print("Order items:", order_items.count())
+        print("Products:", products.count())
 
     # 3. Create enriched transaction dataset
     enriched_orders = create_enriched_orders(
@@ -49,44 +54,47 @@ def main():
         order_items,
         products
     )
-    print("Running data quality checks...")
+    
+    
+    if RUN_VALIDATION:
+        print("Running data quality checks...")
 
-    validate_required_columns(
-        enriched_orders,
-        [
-            "order_id",
-            "customer_id",
-            "product_id",
-            "price",
-            "freight_value",
-            "total_item_cost"
-        ]
+        validate_required_columns(
+            enriched_orders,
+            [
+                "order_id",
+                "customer_id",
+                "product_id",
+                "price",
+                "freight_value",
+                "total_item_cost"
+            ]
+        )
+
+        validate_no_nulls(
+            enriched_orders,
+            [
+                "order_id",
+                "customer_id",
+                "product_id"
+            ]
     )
 
-    validate_no_nulls(
-        enriched_orders,
-        [
-            "order_id",
-            "customer_id",
-            "product_id"
-        ]
-)
+        validate_positive_values(
+            enriched_orders,
+            [
+                "price",
+                "freight_value",
+                "total_item_cost"
+            ]
+    )
 
-    validate_positive_values(
-        enriched_orders,
-        [
-            "price",
-            "freight_value",
-            "total_item_cost"
-        ]
-)
+        validate_minimum_rows(
+            enriched_orders,
+            100000
+    )
 
-    validate_minimum_rows(
-        enriched_orders,
-        100000
-)
-
-    print("All data quality checks passed.")
+        print("All data quality checks passed.")
 
     print("Enriched dataset created.")
     print("Enriched rows:", enriched_orders.count())
@@ -143,7 +151,21 @@ def main():
         ascending=False
     ).show(10)
 
-    # 8. Business metrics
+    # 8. Category analytics
+    category_revenue = calculate_category_revenue(
+        processed_orders
+    )
+    print("Category revenue analytics calculated.")
+    category_revenue.show(10)
+
+    # 9. State analytics
+    state_revenue = calculate_state_revenue(
+        processed_orders
+    )
+    print("State revenue analytics calculated.")
+    state_revenue.show(10)
+
+    # 10. Business metrics
     business_metrics = calculate_business_metrics(
         processed_orders
     )
@@ -153,7 +175,7 @@ def main():
     
     
 
-    # 9.Keep Spark running for inspection
+    # 10. Keep Spark running for inspection
     input("Press Enter to stop Spark...")
     spark.stop()
 

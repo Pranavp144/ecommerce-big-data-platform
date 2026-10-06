@@ -212,46 +212,56 @@ flowchart LR
 
 ## Project Structure
 
-``` text
+```text
 ecommerce-big-data-platform/
 │
 ├── data/
-│   ├── raw/                 # Raw input datasets
-│   └── sample/              # Small sample datasets
+│   ├── raw/
+│   └── sample/
 │
 ├── notebooks/
-│   └── 01_spark_basics.ipynb
-│                            # Spark experimentation and learning
+│   ├── 01_spark_basics.ipynb
+│   └── 02_olist_data_exploration.ipynb
 │
 ├── src/
 │   ├── ingestion/
-│   │   └── read_data.py     # Data ingestion
+│   │   ├── read_data.py
+│   │   └── read_olist_data.py
 │   │
 │   ├── transformation/
-│   │   └── cleaning.py      # Data cleaning and validation
+│   │   ├── cleaning.py
+│   │   └── olist_transformations.py
 │   │
 │   ├── analytics/
-│   │   └── customer_analysis.py
-│   │                            # Business analytics
+│   │   ├── customer_analysis.py
+│   │   └── olist_analysis.py
+│   │
+│   ├── validation/
+│   │   └── olist_validation.py
 │   │
 │   ├── utils/
-│   │   └── spark_session.py # SparkSession creation
+│   │   └── spark_session.py
 │   │
-│   └── main.py              # Main ETL pipeline
+│   ├── main.py
+│   └── main_olist.py
 │
-├── tests/                   # Test cases
+├── tests/
+│   ├── test_cleaning.py
+│   └── test_validation.py
 │
-├── config/                  # Pipeline configuration
+├── config/
 │
 ├── docs/
 │   ├── architecture.md
 │   ├── data-flow.md
 │   ├── technology-decisions.md
-│   └── performance.md
+│   ├── performance.md
+│   └── aws-architecture.md
 │
 ├── diagrams/
 │   ├── architecture.mmd
-│   └── data-flow.mmd
+│   ├── data-flow.mmd
+│   └── aws-architecture.mmd
 │
 ├── screenshots/
 │   ├── spark-ui/
@@ -259,6 +269,7 @@ ecommerce-big-data-platform/
 │
 ├── README.md
 ├── requirements.txt
+├── pytest.ini
 └── .gitignore
 ```
 
@@ -317,10 +328,10 @@ cd "/media/pranav/New Volume/TechStacks/VS code/Spark"
 
 ``` bash
 cd src
-python main.py
+python main_olist.py
 ```
 
-The pipeline will:
+The older pipeline was:
 
 1.  Read raw order data from HDFS.
 2.  Apply data-quality rules.
@@ -328,6 +339,20 @@ The pipeline will:
 4.  Write processed data to Parquet.
 5.  Read the processed Parquet data.
 6.  Execute customer and business analytics.
+
+The New Pipeline will :
+1. Read Olist datasets from Amazon S3.
+2. Filter delivered orders.
+3. Join orders, customers, order items and products.
+4. Apply data-quality validation.
+5. Create the enriched transaction dataset.
+6. Write the processed dataset as Parquet to Amazon S3.
+7. Read the processed Parquet data back from S3.
+8. Perform customer, product, category and state analytics.
+9. Calculate overall business metrics.
+
+
+
 
 ### 5. Verify the HDFS Output
 
