@@ -456,10 +456,9 @@ data.
 -   [x] S3A integration with PySpark
 -   [x] Modular project structure
 -   [x] GitHub documentation
+-   [x] Databricks implementation
 
 ### Planned
-
--   [ ] Databricks implementation
 -   [ ] Delta Lake
 -   [ ] Databricks SQL
 -   [ ] Dashboard integration
